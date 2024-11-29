@@ -20,21 +20,21 @@ import {
   publicActions,
   stringToBytes,
   toBytes,
-  toHex
+  toHex,
 } from "viem"
 import {
   MOCK_MULTI_MODULE_ADDRESS,
   MODULE_ENABLE_MODE_TYPE_HASH,
   NEXUS_DOMAIN_NAME,
   NEXUS_DOMAIN_TYPEHASH,
-  NEXUS_DOMAIN_VERSION
+  NEXUS_DOMAIN_VERSION,
 } from "../../account/utils/Constants"
 import { EIP1271Abi } from "../../constants/abi"
 import { type ModuleType, moduleTypeIds } from "../../modules/utils/Types"
 import type {
   AccountMetadata,
   EIP712DomainReturn,
-  UserOperationStruct
+  UserOperationStruct,
 } from "./Types"
 
 /**
@@ -57,12 +57,12 @@ export function packUserOp(
       ? concat([
           userOperation.paymaster,
           pad(toHex(userOperation.paymasterVerificationGasLimit || BigInt(0)), {
-            size: 16
+            size: 16,
           }),
           pad(toHex(userOperation.paymasterPostOpGasLimit || BigInt(0)), {
-            size: 16
+            size: 16,
           }),
-          userOperation.paymasterData || "0x"
+          userOperation.paymasterData || "0x",
         ])
       : "0x"
   )
@@ -76,7 +76,7 @@ export function packUserOp(
       { type: "bytes32" },
       { type: "uint256" },
       { type: "bytes32" },
-      { type: "bytes32" }
+      { type: "bytes32" },
     ],
     [
       userOperation.sender as Address,
@@ -85,18 +85,18 @@ export function packUserOp(
       hashedCallData,
       concat([
         pad(toHex(userOperation.verificationGasLimit ?? 0n), {
-          size: 16
+          size: 16,
         }),
-        pad(toHex(userOperation.callGasLimit ?? 0n), { size: 16 })
+        pad(toHex(userOperation.callGasLimit ?? 0n), { size: 16 }),
       ]),
       userOperation.preVerificationGas ?? 0n,
       concat([
         pad(toHex(userOperation.maxPriorityFeePerGas ?? 0n), {
-          size: 16
+          size: 16,
         }),
-        pad(toHex(userOperation.maxFeePerGas ?? 0n), { size: 16 })
+        pad(toHex(userOperation.maxFeePerGas ?? 0n), { size: 16 }),
       ]),
-      hashedPaymasterAndData
+      hashedPaymasterAndData,
     ]
   )
 }
@@ -123,7 +123,7 @@ export type SignWith6492Params = {
 export const wrapSignatureWith6492 = ({
   factoryAddress,
   factoryCalldata,
-  signature
+  signature,
 }: SignWith6492Params): Hash => {
   // wrap the signature as follows: https://eips.ethereum.org/EIPS/eip-6492
   // concat(
@@ -136,9 +136,9 @@ export const wrapSignatureWith6492 = ({
     encodeAbiParameters(parseAbiParameters("address, bytes, bytes"), [
       factoryAddress,
       factoryCalldata,
-      signature
+      signature,
     ]),
-    "0x6492649264926492649264926492649264926492649264926492649264926492"
+    "0x6492649264926492649264926492649264926492649264926492649264926492",
   ])
 }
 
@@ -183,7 +183,7 @@ export function makeInstallDataAndHash(
       [
         MODULE_ENABLE_MODE_TYPE_HASH,
         MOCK_MULTI_MODULE_ADDRESS,
-        keccak256(multiInstallData)
+        keccak256(multiInstallData),
       ]
     )
   )
@@ -210,13 +210,13 @@ export function _hashTypedData(
         { type: "bytes32" },
         { type: "bytes32" },
         { type: "bytes32" },
-        { type: "address" }
+        { type: "address" },
       ],
       [
         keccak256(stringToBytes(NEXUS_DOMAIN_TYPEHASH)),
         keccak256(stringToBytes(name)),
         keccak256(stringToBytes(version)),
-        verifyingContract
+        verifyingContract,
       ]
     )
   )
@@ -225,26 +225,28 @@ export function _hashTypedData(
     concat([
       stringToBytes("\x19\x01"),
       hexToBytes(DOMAIN_SEPARATOR),
-      hexToBytes(structHash)
+      hexToBytes(structHash),
     ])
   )
 }
 
 export function getTypesForEIP712Domain({
-  domain
-}: { domain?: TypedDataDomain | undefined }): TypedDataParameter[] {
+  domain,
+}: {
+  domain?: TypedDataDomain | undefined
+}): TypedDataParameter[] {
   return [
     typeof domain?.name === "string" && { name: "name", type: "string" },
     domain?.version && { name: "version", type: "string" },
     typeof domain?.chainId === "number" && {
       name: "chainId",
-      type: "uint256"
+      type: "uint256",
     },
     domain?.verifyingContract && {
       name: "verifyingContract",
-      type: "address"
+      type: "address",
     },
-    domain?.salt && { name: "salt", type: "bytes32" }
+    domain?.salt && { name: "salt", type: "bytes32" },
   ].filter(Boolean) as TypedDataParameter[]
 }
 export const getAccountMeta = async (
@@ -259,23 +261,23 @@ export const getAccountMeta = async (
           to: accountAddress,
           data: encodeFunctionData({
             abi: EIP1271Abi,
-            functionName: "eip712Domain"
-          })
+            functionName: "eip712Domain",
+          }),
         },
-        "latest"
-      ]
+        "latest",
+      ],
     })
 
     if (domain !== "0x") {
       const decoded = decodeFunctionResult({
         abi: [...EIP1271Abi],
         functionName: "eip712Domain",
-        data: domain
+        data: domain,
       })
       return {
         name: decoded?.[1],
         version: decoded?.[2],
-        chainId: decoded?.[3]
+        chainId: decoded?.[3],
       }
     }
   } catch (error) {}
@@ -284,7 +286,7 @@ export const getAccountMeta = async (
     version: NEXUS_DOMAIN_VERSION,
     chainId: client.chain
       ? BigInt(client.chain.id)
-      : BigInt(await client.extend(publicActions).getChainId())
+      : BigInt(await client.extend(publicActions).getChainId()),
   }
 }
 
@@ -331,16 +333,16 @@ export const getAccountDomainStructFields = async (
   const accountDomainStructFields = (await publicClient.readContract({
     address: accountAddress,
     abi: parseAbi([
-      "function eip712Domain() public view returns (bytes1 fields, string memory name, string memory version, uint256 chainId, address verifyingContract, bytes32 salt, uint256[] memory extensions)"
+      "function eip712Domain() public view returns (bytes1 fields, string memory name, string memory version, uint256 chainId, address verifyingContract, bytes32 salt, uint256[] memory extensions)",
     ]),
-    functionName: "eip712Domain"
+    functionName: "eip712Domain",
   })) as EIP712DomainReturn
 
   const [fields, name, version, chainId, verifyingContract, salt, extensions] =
     accountDomainStructFields
 
   const params = parseAbiParameters([
-    "bytes1, bytes32, bytes32, uint256, address, bytes32, bytes32"
+    "bytes1, bytes32, bytes32, uint256, address, bytes32, bytes32",
   ])
 
   return encodeAbiParameters(params, [
@@ -350,11 +352,15 @@ export const getAccountDomainStructFields = async (
     chainId,
     verifyingContract,
     salt,
-    keccak256(encodePacked(["uint256[]"], [extensions]))
+    keccak256(encodePacked(["uint256[]"], [extensions])),
   ])
 }
-export const playgroundTrue = process?.env?.RUN_PLAYGROUND === "true"
-export const isTesting = process?.env?.TEST === "true"
+export const playgroundTrue =
+  typeof process === "undefined"
+    ? false
+    : process?.env?.RUN_PLAYGROUND === "true"
+export const isTesting =
+  typeof process === "undefined" ? false : process?.env?.TEST === "true"
 
 export const safeMultiplier = (bI: bigint, multiplier: number): bigint =>
   BigInt(Math.round(Number(bI) * multiplier))
